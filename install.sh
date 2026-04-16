@@ -103,9 +103,13 @@ say "installing python dependencies (uv)"
 uv sync --quiet
 
 if [ ! -f .env ]; then
-  printf "\n\033[1mGROQ API key\033[0m — paste it (get one free at https://console.groq.com)\n"
-  printf "> "
-  read -r GROQ_KEY
+  if [ -r /dev/tty ]; then
+    printf "\n\033[1mGROQ API key\033[0m — paste it (get one free at https://console.groq.com)\n> " > /dev/tty
+    read -r GROQ_KEY < /dev/tty
+  else
+    printf "\n\033[1mGROQ API key\033[0m — paste it (get one free at https://console.groq.com)\n> "
+    read -r GROQ_KEY
+  fi
   [ -n "$GROQ_KEY" ] || die "empty key, aborting"
   cat > .env <<EOF
 GROQ_API_KEY=$GROQ_KEY
