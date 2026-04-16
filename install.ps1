@@ -96,11 +96,16 @@ Push-Location web
 npm install --silent
 Pop-Location
 
+foreach ($p in 8001, 3000) {
+  $busy = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue
+  if ($busy) { Die "port $p is already in use — stop the process first" }
+}
+
 Write-Host ""
 Write-Host "✓ setup complete — starting services" -ForegroundColor Green
 Write-Host ""
 
-$api = Start-Process -PassThru -NoNewWindow -FilePath "uv" -ArgumentList "run","idun","agent","serve","--file","--path","config.yaml"
+$api = Start-Process -PassThru -NoNewWindow -FilePath "uv" -ArgumentList "run","idun","agent","serve","--source","file","--path","config.yaml"
 $web = Start-Process -PassThru -NoNewWindow -FilePath "npm" -ArgumentList "run","dev" -WorkingDirectory (Join-Path $InstallDir "web")
 
 Start-Sleep -Seconds 4

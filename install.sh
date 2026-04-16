@@ -137,11 +137,25 @@ fi
 say "installing web dependencies"
 ( cd web && npm install --silent )
 
+port_in_use() {
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -i ":$1" -sTCP:LISTEN >/dev/null 2>&1
+  else
+    (echo > "/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1
+  fi
+}
+
+for p in 8001 3000; do
+  if port_in_use "$p"; then
+    die "port $p is already in use — stop the process first (lsof -i :$p then kill <pid>)"
+  fi
+done
+
 printf "\n\033[1;32m✓ setup complete\033[0m — starting services\n\n"
 
 trap 'kill 0 2>/dev/null; exit 0' INT TERM EXIT
 
-( uv run idun agent serve --file --path config.yaml 2>&1 | sed 's/^/\x1b[36m[api]\x1b[0m /' ) &
+( uv run idun agent serve --source file --path config.yaml 2>&1 | sed 's/^/\x1b[36m[api]\x1b[0m /' ) &
 ( cd web && npm run dev 2>&1 | sed 's/^/\x1b[35m[web]\x1b[0m /' ) &
 
 sleep 4
