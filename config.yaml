@@ -1,0 +1,11 @@
+server:
+  api:
+    port: 8001
+
+agent:
+  type: "LANGGRAPH"
+  config:
+    name: "IMT"
+    graph_definition: "src.agent:graph"
+    checkpointer:
+      type: "memory"
