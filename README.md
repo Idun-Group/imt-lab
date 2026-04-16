@@ -1,6 +1,6 @@
-# Sovereign AI Lab
+# AI Lab
 
-Démonstration préparée pour un cours à IMT-BS. Le programme reçoit une question en français sur l'économie ou le numérique en Europe, planifie une analyse, exécute du code Python sur des jeux de données Eurostat, produit des graphiques et un rapport PDF.
+Démonstration préparée pour un cours à IMT-BS. L'agent reçoit une question en français sur l'économie ou le numérique en Europe, planifie une analyse, exécute du code Python sur des jeux de données Eurostat, produit des graphiques et un rapport PDF.
 
 ![Aperçu de l'interface](docs/screenshot.png)
 

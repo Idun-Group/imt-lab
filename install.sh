@@ -83,7 +83,7 @@ open_browser() {
   fi
 }
 
-printf "\n\033[1m🇪🇺  Sovereign AI Lab — setup\033[0m\n\n"
+printf "\n\033[1m🇪🇺  AI Lab — setup\033[0m\n\n"
 
 ensure_git
 ensure_node

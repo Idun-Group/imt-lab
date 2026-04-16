@@ -53,7 +53,7 @@ function Ensure-Uv {
 }
 
 Write-Host ""
-Write-Host "🇪🇺  Sovereign AI Lab — setup" -ForegroundColor White
+Write-Host "🇪🇺  AI Lab — setup" -ForegroundColor White
 Write-Host ""
 
 Ensure-Git
