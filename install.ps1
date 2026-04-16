@@ -73,17 +73,18 @@ Set-Location $InstallDir
 Say "installing python dependencies (uv)"
 uv sync --quiet
 
-if (-not (Test-Path ".env")) {
+$groqKey = $env:GROQ_API_KEY
+if ([string]::IsNullOrWhiteSpace($groqKey)) {
   Write-Host ""
-  Write-Host "GROQ API key — paste it (get one free at https://console.groq.com)" -ForegroundColor White
+  Write-Host "GROQ API key — paste it (https://console.groq.com)" -ForegroundColor White
   $groqKey = Read-Host "key"
-  if ([string]::IsNullOrWhiteSpace($groqKey)) { Die "empty key, aborting" }
-  @"
+}
+if ([string]::IsNullOrWhiteSpace($groqKey)) { Die "empty key, aborting" }
+@"
 GROQ_API_KEY=$groqKey
 GROQ_MODEL=qwen/qwen3-32b
 "@ | Set-Content .env -NoNewline
-  Ok ".env written"
-}
+Ok ".env written"
 
 if (-not (Test-Path "data\ai_adoption_eu.csv")) {
   Say "fetching Eurostat datasets (~30s)"

@@ -102,21 +102,32 @@ cd "$INSTALL_DIR"
 say "installing python dependencies (uv)"
 uv sync --quiet
 
-if [ ! -f .env ]; then
-  if [ -r /dev/tty ]; then
-    printf "\n\033[1mGROQ API key\033[0m — paste it (get one free at https://console.groq.com)\n> " > /dev/tty
-    read -r GROQ_KEY < /dev/tty
+GROQ_KEY="${GROQ_API_KEY:-}"
+if [ -z "$GROQ_KEY" ]; then
+  if [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    printf "\n\033[1mGROQ API key\033[0m — paste it (https://console.groq.com)\n> " > /dev/tty
+    IFS= read -r GROQ_KEY < /dev/tty || true
   else
-    printf "\n\033[1mGROQ API key\033[0m — paste it (get one free at https://console.groq.com)\n> "
-    read -r GROQ_KEY
+    cat >&2 <<'EOF'
+
+No interactive terminal detected. Re-run with ONE of:
+
+  # 1. Pass the key inline
+  curl -fsSL https://raw.githubusercontent.com/Idun-Group/imt-lab/main/install.sh | GROQ_API_KEY=gsk_xxx bash
+
+  # 2. Or download then run
+  curl -fsSL https://raw.githubusercontent.com/Idun-Group/imt-lab/main/install.sh -o install.sh && bash install.sh
+
+EOF
+    exit 1
   fi
-  [ -n "$GROQ_KEY" ] || die "empty key, aborting"
-  cat > .env <<EOF
+fi
+[ -n "$GROQ_KEY" ] || die "empty key, aborting"
+cat > .env <<EOF
 GROQ_API_KEY=$GROQ_KEY
 GROQ_MODEL=qwen/qwen3-32b
 EOF
-  ok ".env written"
-fi
+ok ".env written"
 
 if [ ! -f data/ai_adoption_eu.csv ]; then
   say "fetching Eurostat datasets (~30s)"
