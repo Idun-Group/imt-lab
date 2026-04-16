@@ -13,6 +13,60 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "missing: $1 — $2"
 }
 
+os_kind() {
+  case "$(uname -s)" in
+    Darwin) echo mac ;;
+    Linux)  echo linux ;;
+    *)      echo other ;;
+  esac
+}
+
+ensure_git() {
+  command -v git >/dev/null 2>&1 && return
+  case "$(os_kind)" in
+    mac)
+      say "installing git (accept the Xcode Command Line Tools popup)"
+      xcode-select --install 2>/dev/null || true
+      until command -v git >/dev/null 2>&1; do sleep 4; done
+      ;;
+    linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        say "installing git via apt"
+        sudo apt-get update -qq && sudo apt-get install -y git
+      elif command -v dnf >/dev/null 2>&1; then
+        say "installing git via dnf"
+        sudo dnf install -y git
+      elif command -v pacman >/dev/null 2>&1; then
+        say "installing git via pacman"
+        sudo pacman -S --noconfirm git
+      else
+        die "no known package manager — install git manually"
+      fi
+      ;;
+    *) die "unsupported OS — install git manually" ;;
+  esac
+}
+
+ensure_node() {
+  if command -v node >/dev/null 2>&1; then
+    local major
+    major=$(node -v | sed 's/^v\([0-9]*\).*/\1/')
+    [ "$major" -ge 18 ] && return
+    warn "node $major detected, installing 20 LTS via nvm"
+  else
+    say "installing node 20 LTS via nvm"
+  fi
+  if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+  fi
+  export NVM_DIR="$HOME/.nvm"
+  # shellcheck disable=SC1091
+  . "$NVM_DIR/nvm.sh"
+  nvm install --lts >/dev/null
+  nvm use --lts >/dev/null
+  command -v node >/dev/null 2>&1 || die "node install failed — open a new terminal and retry"
+}
+
 ensure_uv() {
   if ! command -v uv >/dev/null 2>&1; then
     say "installing uv (python toolchain)"
@@ -31,9 +85,9 @@ open_browser() {
 
 printf "\n\033[1m🇪🇺  Sovereign AI Lab — setup\033[0m\n\n"
 
-need_cmd git  "install from https://git-scm.com"
-need_cmd node "install Node 18+ from https://nodejs.org"
-need_cmd npm  "comes with Node.js"
+ensure_git
+ensure_node
+need_cmd npm "comes with Node.js"
 ensure_uv
 
 if [ ! -d "$INSTALL_DIR" ]; then

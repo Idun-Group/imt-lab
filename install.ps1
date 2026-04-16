@@ -12,11 +12,42 @@ function Need-Cmd ($cmd, $hint) {
   if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { Die "missing: $cmd — $hint" }
 }
 
+function Refresh-Path {
+  $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+              [Environment]::GetEnvironmentVariable("Path", "User")
+}
+
+function Winget-Install ($id, $label) {
+  if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Die "winget not available — install $label manually"
+  }
+  Say "installing $label via winget"
+  winget install --id $id --silent --accept-source-agreements --accept-package-agreements | Out-Null
+  Refresh-Path
+}
+
+function Ensure-Git {
+  if (Get-Command git -ErrorAction SilentlyContinue) { return }
+  Winget-Install "Git.Git" "git"
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Die "git install failed — open a new terminal and retry" }
+}
+
+function Ensure-Node {
+  if (Get-Command node -ErrorAction SilentlyContinue) {
+    $major = [int]((node -v) -replace 'v(\d+).*', '$1')
+    if ($major -ge 18) { return }
+    Warn "node $major detected, installing LTS"
+  }
+  Winget-Install "OpenJS.NodeJS.LTS" "Node.js LTS"
+  if (-not (Get-Command node -ErrorAction SilentlyContinue)) { Die "node install failed — open a new terminal and retry" }
+}
+
 function Ensure-Uv {
   if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Say "installing uv (python toolchain)"
     powershell -c "irm https://astral.sh/uv/install.ps1 | iex" | Out-Null
     $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
+    Refresh-Path
     if (-not (Get-Command uv -ErrorAction SilentlyContinue)) { Die "uv install failed — open a new terminal and retry" }
   }
 }
@@ -25,9 +56,9 @@ Write-Host ""
 Write-Host "🇪🇺  Sovereign AI Lab — setup" -ForegroundColor White
 Write-Host ""
 
-Need-Cmd git  "https://git-scm.com/download/win"
-Need-Cmd node "https://nodejs.org"
-Need-Cmd npm  "comes with Node.js"
+Ensure-Git
+Ensure-Node
+Need-Cmd npm "comes with Node.js"
 Ensure-Uv
 
 if (-not (Test-Path $InstallDir)) {
