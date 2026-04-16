@@ -23,16 +23,16 @@ Démonstration préparée pour un cours à IMT-BS. Le programme reçoit une ques
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AhmedEnnaifer/imt/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Idun-Group/imt-lab/main/install.sh | bash
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/AhmedEnnaifer/imt/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Idun-Group/imt-lab/main/install.ps1 | iex
 ```
 
-Le script clone le dépôt dans `~/sovereign-ai-lab`, installe les dépendances Python (via `uv`) et Node, demande la clé Groq puis la sauvegarde dans `.env`, télécharge les jeux de données Eurostat, et lance les deux serveurs.
+Le script clone le dépôt dans `~/imt-lab`, installe les dépendances Python (via `uv`) et Node, demande la clé Groq puis la sauvegarde dans `.env`, télécharge les jeux de données Eurostat, et lance les deux serveurs.
 
 Une fois lancé :
 
@@ -52,25 +52,6 @@ Téléchargés depuis Eurostat par `scripts/fetch_data.py` :
 | `gdp_eu.csv` | PIB aux prix courants |
 | `rd_spending_eu.csv` | dépenses R&D en pourcentage du PIB |
 | `ict_employment_eu.csv` | part des spécialistes ICT dans l'emploi total |
-
-## Stack
-
-- Python : `langgraph`, `langchain-groq` (Qwen 3 32B), `langchain-experimental`, `pandas`, `matplotlib`, `fpdf2`, `duckduckgo-search`
-- Serveur : `idun-agent-engine` (expose un endpoint AG-UI)
-- Frontend : Next.js 14, React 18, Tailwind, `react-markdown`
-
-## Arborescence
-
-```
-src/          code du graphe et des outils
-web/          frontend Next.js
-data/         CSV Eurostat
-output/       graphiques et PDF générés
-scripts/      téléchargement Eurostat
-config.yaml   config du serveur IDUN
-install.sh    installation (Unix)
-install.ps1   installation (Windows)
-```
 
 ## Lancement manuel
 

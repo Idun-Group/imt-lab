@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/AhmedEnnaifer/imt.git}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/sovereign-ai-lab}"
+REPO_URL="${REPO_URL:-https://github.com/Idun-Group/imt-lab.git}"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/imt-lab}"
 
 say()  { printf "\033[1;34m▸\033[0m %s\n" "$*"; }
 ok()   { printf "\033[1;32m✓\033[0m %s\n" "$*"; }

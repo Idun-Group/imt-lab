@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$RepoUrl    = if ($env:REPO_URL)    { $env:REPO_URL }    else { "https://github.com/AhmedEnnaifer/imt.git" }
-$InstallDir = if ($env:INSTALL_DIR) { $env:INSTALL_DIR } else { Join-Path $env:USERPROFILE "sovereign-ai-lab" }
+$RepoUrl    = if ($env:REPO_URL)    { $env:REPO_URL }    else { "https://github.com/Idun-Group/imt-lab.git" }
+$InstallDir = if ($env:INSTALL_DIR) { $env:INSTALL_DIR } else { Join-Path $env:USERPROFILE "imt-lab" }
 
 function Say  ($msg) { Write-Host "▸ $msg" -ForegroundColor Blue }
 function Ok   ($msg) { Write-Host "✓ $msg" -ForegroundColor Green }
