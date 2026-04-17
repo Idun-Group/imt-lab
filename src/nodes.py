@@ -7,7 +7,7 @@ from pathlib import Path
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_groq import ChatGroq
 
-from .config import GROQ_API_KEY, GROQ_MODEL
+from .config import GROQ_API_KEY, GROQ_MODEL, GROQ_TOOL_MODEL
 from .pdf import build_report
 from .prompts import (
     ACKNOWLEDGE_PROMPT,
@@ -22,15 +22,18 @@ from .state import AnalystState
 from .tools import ANALYST_TOOLS, get_charts, reset_session
 
 
-def _llm(temperature: float = 0.3, disable_streaming: bool | str = False) -> ChatGroq:
-    return ChatGroq(
-        model=GROQ_MODEL,
-        api_key=GROQ_API_KEY,
-        temperature=temperature,
-        disable_streaming=disable_streaming,
-        reasoning_format="hidden",
-        max_retries=3,
-    )
+def _llm(temperature: float = 0.3, disable_streaming: bool | str = False, tools: bool = False) -> ChatGroq:
+    model = GROQ_TOOL_MODEL if tools else GROQ_MODEL
+    kwargs: dict = {
+        "model": model,
+        "api_key": GROQ_API_KEY,
+        "temperature": temperature,
+        "disable_streaming": disable_streaming,
+        "max_retries": 3,
+    }
+    if model.startswith("qwen"):
+        kwargs["reasoning_format"] = "hidden"
+    return ChatGroq(**kwargs)
 
 
 def _last_user_text(messages: list) -> str:
@@ -111,12 +114,12 @@ def planner_node(state: AnalystState) -> dict:
 
 
 def analyst_node(state: AnalystState) -> dict:
-    bound = _llm(temperature=0.0, disable_streaming="tool_calling").bind_tools(
+    bound = _llm(temperature=0.0, disable_streaming="tool_calling", tools=True).bind_tools(
         ANALYST_TOOLS
     )
     try:
         response = bound.invoke(state["messages"])
-    except Exception as exc:
+    except Exception:
         nudge = HumanMessage(
             content=(
                 "Your previous tool call had malformed arguments. "

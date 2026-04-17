@@ -15,7 +15,8 @@ OUTPUT_DIR = ROOT / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+GROQ_TOOL_MODEL = os.getenv("GROQ_TOOL_MODEL", "qwen/qwen3-32b")
 
 EU_PALETTE = ["#003399", "#FFCC00", "#0066CC", "#FF6600", "#009933", "#CC0000",
               "#663399", "#00CCCC", "#FF3366", "#336600"]
