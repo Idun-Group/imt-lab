@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
@@ -11,9 +12,11 @@ from .pdf import build_report
 from .prompts import (
     ACKNOWLEDGE_PROMPT,
     ANALYST_PROMPT,
+    CHAT_PROMPT,
     PLANNER_PROMPT,
     REPORT_PROMPT,
     RESPONDER_PROMPT,
+    ROUTER_PROMPT,
 )
 from .state import AnalystState
 from .tools import ANALYST_TOOLS, get_charts, reset_session
@@ -44,14 +47,48 @@ def _last_user_text(messages: list) -> str:
     return ""
 
 
+def router_node(state: AnalystState) -> dict:
+    history = []
+    for m in state["messages"]:
+        role = getattr(m, "type", None) or getattr(m, "role", None)
+        content = getattr(m, "content", "")
+        if isinstance(content, list):
+            content = " ".join(
+                c.get("text", "") if isinstance(c, dict) else str(c) for c in content
+            )
+        if role in ("human", "user"):
+            history.append(f"User: {content}")
+        elif role in ("ai", "assistant") and content:
+            history.append(f"Assistant: {content[:200]}")
+    transcript = "\n".join(history[-8:])
+    response = _llm(temperature=0.0, disable_streaming=True).invoke([
+        SystemMessage(content=ROUTER_PROMPT),
+        HumanMessage(content=transcript),
+    ])
+    intent = response.content.strip().lower()
+    route = "analysis" if "analysis" in intent else "chat"
+    return {"route": route}
+
+
+def route_intent(state: AnalystState) -> str:
+    return state.get("route", "analysis")
+
+
+def chat_node(state: AnalystState) -> dict:
+    query = _last_user_text(state["messages"])
+    response = _llm(temperature=0.5).invoke([
+        SystemMessage(content=CHAT_PROMPT),
+        HumanMessage(content=query),
+    ])
+    return {"messages": [AIMessage(content=response.content)]}
+
+
 def acknowledge_node(state: AnalystState) -> dict:
     query = _last_user_text(state["messages"])
-    _llm(temperature=0.5).invoke(
-        [
-            SystemMessage(content=ACKNOWLEDGE_PROMPT),
-            HumanMessage(content=query),
-        ]
-    )
+    _llm(temperature=0.5).invoke([
+        SystemMessage(content=ACKNOWLEDGE_PROMPT),
+        HumanMessage(content=query),
+    ])
     return {}
 
 

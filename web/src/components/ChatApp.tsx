@@ -102,6 +102,10 @@ export default function ChatApp() {
     const threadId = uid();
     const runId = uid();
     let currentStep = "";
+    const KNOWN_STEPS = new Set([
+      "router", "chat", "acknowledge", "planner", "analyst", "tools",
+      "report_writer", "responder",
+    ]);
 
     const update = (fn: (m: Message) => Message) => {
       setMessages((prev) => prev.map((x) => (x.id === assistantMsg.id ? fn(x) : x)));
@@ -116,36 +120,41 @@ export default function ChatApp() {
         switch (ev.type) {
           case "STEP_STARTED": {
             const name = ev.stepName || ev.step_name;
-            currentStep = name;
-            const step: StepBadge = { id: uid(), name };
-            update((m) => ({
-              ...m,
-              steps: [...(m.steps || []), step],
-              ...(name === "responder" ? { content: "" } : {}),
-            }));
+            if (KNOWN_STEPS.has(name)) {
+              currentStep = name;
+              const step: StepBadge = { id: uid(), name };
+              update((m) => ({
+                ...m,
+                steps: [...(m.steps || []), step],
+                ...(name === "responder" ? { content: "" } : {}),
+              }));
+            }
             break;
           }
           case "STEP_FINISHED": {
             const name = ev.stepName || ev.step_name;
-            update((m) => ({
-              ...m,
-              steps: (m.steps || []).map((s) =>
-                s.name === name && !s.finished ? { ...s, finished: true } : s
-              ),
-            }));
+            if (KNOWN_STEPS.has(name)) {
+              update((m) => ({
+                ...m,
+                steps: (m.steps || []).map((s) =>
+                  s.name === name && !s.finished ? { ...s, finished: true } : s
+                ),
+              }));
+            }
             break;
           }
           case "TEXT_MESSAGE_CONTENT": {
             const delta = ev.delta || "";
+            const planSteps = ["planner", "analyst"];
+            const chatSteps = ["responder", "chat"];
             update((m) => {
               if (currentStep === "acknowledge") {
-                const next = stripThink((m.opener || "") + delta);
-                return { ...m, opener: next };
+                return { ...m, opener: stripThink((m.opener || "") + delta) };
               }
-              if (currentStep === "planner" || currentStep === "analyst") {
-                const next = stripThink((m.plan || "") + delta);
-                return { ...m, plan: next };
+              if (planSteps.includes(currentStep)) {
+                return { ...m, plan: stripThink((m.plan || "") + delta) };
               }
+              // responder, chat, or any unknown step → main content
               const newContent = stripThink((m.content || "") + delta);
               const rp = extractReportPath(newContent) || m.reportPath;
               return { ...m, content: newContent, reportPath: rp };
@@ -154,9 +163,9 @@ export default function ChatApp() {
           }
           case "TEXT_MESSAGE_END": {
             update((m) => {
-              if (!m.content) return m;
-              const rp = extractReportPath(m.content) || m.reportPath;
-              return { ...m, content: stripReportLink(m.content), reportPath: rp };
+              const rp = extractReportPath(m.content || "") || m.reportPath;
+              const cleaned = m.content ? stripReportLink(m.content) : "";
+              return { ...m, content: cleaned, reportPath: rp };
             });
             break;
           }

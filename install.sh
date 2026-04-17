@@ -155,7 +155,7 @@ printf "\n\033[1;32m✓ setup complete\033[0m — starting services\n\n"
 
 trap 'kill 0 2>/dev/null; exit 0' INT TERM EXIT
 
-( uv run idun agent serve --source file --path config.yaml 2>&1 | sed 's/^/\x1b[36m[api]\x1b[0m /' ) &
+( set -a && source .env && set +a && uv run idun agent serve --source file --path config.yaml 2>&1 | sed 's/^/\x1b[36m[api]\x1b[0m /' ) &
 ( cd web && npm run dev 2>&1 | sed 's/^/\x1b[35m[web]\x1b[0m /' ) &
 
 sleep 4

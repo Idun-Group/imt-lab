@@ -105,6 +105,14 @@ Write-Host ""
 Write-Host "✓ setup complete — starting services" -ForegroundColor Green
 Write-Host ""
 
+# Load .env into current process environment
+if (Test-Path ".env") {
+  Get-Content ".env" | ForEach-Object {
+    if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
+      [Environment]::SetEnvironmentVariable($Matches[1].Trim(), $Matches[2].Trim(), "Process")
+    }
+  }
+}
 $api = Start-Process -PassThru -NoNewWindow -FilePath "uv" -ArgumentList "run","idun","agent","serve","--source","file","--path","config.yaml"
 $web = Start-Process -PassThru -NoNewWindow -FilePath "npm" -ArgumentList "run","dev" -WorkingDirectory (Join-Path $InstallDir "web")
 

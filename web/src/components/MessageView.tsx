@@ -23,8 +23,21 @@ export default function MessageView({
     );
   }
 
+  const hasAnything = m.opener || m.plan || m.content || (m.toolCalls && m.toolCalls.length > 0);
+  const waiting = m.streaming && !hasAnything;
+
   return (
     <div className="w-full space-y-3.5">
+      {waiting && (
+        <div className="flex items-center gap-2 py-1">
+          <span className="flex gap-1">
+            <span className="h-2 w-2 rounded-full bg-ink/40 animate-bounce [animation-delay:0ms]" />
+            <span className="h-2 w-2 rounded-full bg-ink/40 animate-bounce [animation-delay:150ms]" />
+            <span className="h-2 w-2 rounded-full bg-ink/40 animate-bounce [animation-delay:300ms]" />
+          </span>
+        </div>
+      )}
+
       {m.opener && (
         <div className="text-[15px] leading-relaxed text-ink">
           {m.opener}

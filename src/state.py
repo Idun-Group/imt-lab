@@ -15,5 +15,6 @@ class ChatOutput(TypedDict):
 
 class AnalystState(TypedDict):
     messages: Annotated[list, add_messages]
+    route: str
     analysis_plan: str
     report_path: str
