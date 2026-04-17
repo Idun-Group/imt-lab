@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import time
+import re
 from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
@@ -168,16 +168,26 @@ def report_writer_node(state: AnalystState) -> dict:
     )
 
     raw = response.content.strip()
+    # Strip markdown code fences
     if raw.startswith("```"):
-        raw = raw.strip("`")
-        if raw.lower().startswith("json"):
-            raw = raw[4:].strip()
+        raw = raw.split("\n", 1)[-1] if "\n" in raw else raw[3:]
+    if raw.endswith("```"):
+        raw = raw[:-3]
+    raw = raw.strip()
+    if raw.lower().startswith("json"):
+        raw = raw[4:].strip()
+    raw = re.sub(r"<think>[\s\S]*?</think>", "", raw).strip()
+    # Find the JSON object boundaries
+    start = raw.find("{")
+    end = raw.rfind("}") + 1
+    if start >= 0 and end > start:
+        raw = raw[start:end]
     try:
         spec = json.loads(raw)
     except json.JSONDecodeError:
         spec = {
             "title": query[:80],
-            "executive_summary": response.content,
+            "executive_summary": raw[:500] if len(raw) > 20 else "Analyse terminée.",
             "sections": [],
         }
 

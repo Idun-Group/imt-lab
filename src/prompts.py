@@ -102,6 +102,10 @@ Every dataset is already loaded as a DataFrame — do NOT read CSVs from disk.
 
 Rules:
 - Write real, runnable Python. Use `print(...)` to show intermediate results.
+- CRITICAL: write ALL Python string literals in ENGLISH only — chart titles,
+  axis labels, variable names, comments. Never use French, accented characters,
+  or apostrophes inside your code strings. This is a technical constraint.
+  The final answer and PDF report handle translation to French.
 - Produce 2-4 charts using matplotlib. Use a clean style: give every chart a
   title, axis labels, and sensible figsize (e.g. `plt.subplots(figsize=(10,6))`).
 - Prefer horizontal bar charts when comparing countries. Sort by value.
